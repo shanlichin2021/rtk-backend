@@ -1,0 +1,6 @@
+# this is file: prompt-eng/config
+
+# Point to the target open-webui
+
+URL_GENERATE=https://chat.hpc.fau.edu/api/chat/completions
+API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjM2OGExNDFmLWVmOTQtNDgyYy1iODllLTVmNDM2OGY0M2VmYiJ9.AaBB-FfiwRBEfA7KzafJwMSc_PwvBM9CkZnrE0wldHQ
