@@ -1,0 +1,49 @@
+swagger: "2.0"
+info:
+  title: Right‑To‑Know API
+  version: "1.0.0"
+
+# Gateway host gets filled in by Google after deployment
+schemes: [https]
+
+paths:
+  /api/chat:
+    # ─────────────── 1) CORS pre‑flight  ───────────────
+    options:
+      summary: "CORS support"
+      responses:
+        "204":
+          description: "No content"
+          headers:
+            Access-Control-Allow-Origin:
+              type: string
+            Access-Control-Allow-Methods:
+              type: string
+            Access-Control-Allow-Headers:
+              type: string
+      # special extensions so Gateway lets OPTIONS through unauthenticated
+      x-google-allow: all               # skip auth
+      x-google-endpoints:
+        - name: allow_cors
+    # ─────────────── 2) Auth‑protected POST ────────────
+    post:
+      security:
+        - id_token: []                  # use JWT
+      responses:
+        "200":
+          description: "OK"
+
+# ╭────────────────── backend mapping ──────────────────╮
+x-google-backend:
+  address: https://rtk-backend-1054015385247.us-central1.run.app
+  protocol: h2                                             # Cloud Run
+# ╰───────────────────────────────────────────────────────╯
+
+securityDefinitions:
+  id_token:
+    type: "oauth2"
+    authorizationUrl: ""          # not used for ID tokens
+    flow: "implicit"
+    x-google-issuer: "https://accounts.google.com"
+    x-google-jwks_uri: "https://www.googleapis.com/oauth2/v3/certs"
+    x-google-audiences: https://rtk-backend-1054015385247.us-central1.run.app
