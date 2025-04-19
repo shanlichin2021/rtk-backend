@@ -8,9 +8,6 @@ app = Flask(__name__)
 # Allow requests from your GitHub‑Pages domain in prod; fall back to * for local dev
 CORS(app, origins=os.getenv("ALLOWED_ORIGINS", "*"))
 
-# ──────────────────────────────────────────────────────────────────────
-# Routes
-# ──────────────────────────────────────────────────────────────────────
 @app.route("/api/chat", methods=["POST"])
 def chat():
     data       = request.get_json()
