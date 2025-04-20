@@ -1,17 +1,18 @@
 swagger: "2.0"
+
+# ─── Global CORS ─────────────────────────────────────────
+x-google-cors:
+  allowOrigins: ["https://shanlichin2021.github.io"]
+  allowMethods: ["OPTIONS", "POST"]
+  allowHeaders: ["Content-Type", "Authorization"]
+
 info:
   title: Right‑To‑Know API
   version: "1.0.0"
 
 paths:
   /api/chat:
-    # ──────────────── CORS CONFIG (path‑level) ────────────────
-    x-google-cors:
-      allowOrigins: ["https://shanlichin2021.github.io"]
-      allowMethods: ["OPTIONS", "POST"]
-      allowHeaders: ["Content-Type", "Authorization"]
-
-    # OPTIONS (preflight) stub
+    # Preflight stub
     options:
       operationId: chatPreflight
       summary: "CORS preflight for /api/chat"
@@ -20,7 +21,6 @@ paths:
           description: "No Content"
       x-google-allow: all
 
-    # POST (actual chat call)
     post:
       operationId: chat
       summary: "Chat endpoint"
@@ -39,7 +39,7 @@ paths:
       security:
         - id_token: []
 
-# ───────────── backend mapping ─────────────
+# ─── Forwarding to Cloud Run ──────────────────────────────
 x-google-backend:
   address: https://rtk-backend-1054015385247.us-central1.run.app
   protocol: h2
