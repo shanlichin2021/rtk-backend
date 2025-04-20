@@ -7,8 +7,7 @@ from google.auth.transport import requests as google_requests
 
 app = Flask(__name__)
 
-# ─── CORS ───────────────────────────────────────────────────────────────
-# Always reply with these headers (preflight & actual)
+# Always send CORS headers on OPTIONS and actual requests
 CORS(
     app,
     origins=os.getenv("ALLOWED_ORIGINS", "*"),
@@ -16,10 +15,9 @@ CORS(
     methods=["GET", "POST", "OPTIONS"],
 )
 
-# ─── Token Validation ────────────────────────────────────────────────────
 @app.before_request
 def validate_id_token():
-    # Let OPTIONS through so CORS can happen
+    # Let preflight go through
     if request.method == "OPTIONS":
         return
 
@@ -28,18 +26,24 @@ def validate_id_token():
         abort(401, description="Missing or malformed Authorization header")
 
     token = auth.split(" ", 1)[1]
+
+    # Hard‑coded fallback audience (your Cloud Run URL)
+    expected_aud = os.getenv(
+        "VITE_CLOUD_RUN_AUDIENCE",
+        "https://rtk-backend-1054015385247.us-central1.run.app"
+    )
+
     try:
-        # Verify the Google ID token
+        # Verify the Google ID token against the expected audience
         id_info = id_token.verify_oauth2_token(
             token,
             google_requests.Request(),
-            audience=os.getenv("VITE_CLOUD_RUN_AUDIENCE"),
+            audience=expected_aud,
         )
-        # Optionally: store id_info in flask.g if you need user info
+        # (Optionally: store id_info in flask.g if you need user info)
     except ValueError:
         abort(401, description="Invalid ID token")
 
-# ─── Your Chat Endpoint ─────────────────────────────────────────────────
 @app.route("/api/chat", methods=["POST"])
 def chat():
     data       = request.get_json()
@@ -50,9 +54,11 @@ def chat():
     if not message:
         return jsonify({"error": "Message cannot be empty"}), 400
 
+    # Reconstruct dialogue context
     context     = "\n".join(f"{m['sender']}: {m['text']}" for m in history)
     full_prompt = f"{context}\nuser: {message}"
 
+    # Talk to the model
     payload, result = None, None
     payload = create_payload(model=model_name,
                              prompt=full_prompt,
@@ -64,7 +70,7 @@ def chat():
 
     return jsonify({"reply": result})
 
-# ─── Entrypoint ─────────────────────────────────────────────────────────
+# Entry point for local dev; Cloud Run uses $PORT
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port, debug=False)
