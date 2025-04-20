@@ -1,6 +1,6 @@
 swagger: "2.0"
 
-# ← Global CORS for every response (200, 401, 404, etc.)
+# Global CORS (top‑level)
 x-google-cors:
   allowOrigins: ["https://shanlichin2021.github.io"]
   allowMethods: ["OPTIONS", "POST"]
@@ -14,26 +14,41 @@ paths:
   /api/chat:
     options:
       operationId: chatPreflight
-      x-google-allow: all
+      summary: "CORS preflight"
       responses:
         "204":
           description: "No Content"
+      x-google-allow: all
+
     post:
       operationId: chat
-      security:
-        - id_token: []
+      summary: "Chat endpoint"
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: payload
+          schema:
+            type: object
       responses:
         "200":
           description: "OK"
+      security:
+        - id_token: []
 
 x-google-backend:
   address: https://rtk-backend-1054015385247.us-central1.run.app
   protocol: h2
 
+# <<–– This is the fixed block:
 securityDefinitions:
   id_token:
     type: "oauth2"
     flow: "implicit"
+    authorizationUrl: "" # must be present
+    scopes: {} # **required** by Swagger 2.0
     x-google-issuer: "https://accounts.google.com"
     x-google-jwks_uri: "https://www.googleapis.com/oauth2/v3/certs"
     x-google-audiences: https://rtk-backend-1054015385247.us-central1.run.app
