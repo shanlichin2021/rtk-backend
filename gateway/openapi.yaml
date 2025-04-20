@@ -12,16 +12,16 @@ info:
 
 paths:
   /api/chat:
-    # Preflight: no auth required, just return CORS headers
+    # CORS preflight – no auth, just return headers
     options:
       operationId: chatPreflight
       summary: "CORS preflight for /api/chat"
+      x-google-allow: all
       responses:
         "204":
           description: "No Content"
-      x-google-allow: all
 
-    # Actual chat endpoint: must supply a valid Google ID token
+    # Actual chat endpoint – requires a valid Google ID token
     post:
       operationId: chat
       summary: "Chat endpoint"
@@ -44,13 +44,15 @@ paths:
 x-google-backend:
   address: https://rtk-backend-1054015385247.us-central1.run.app
   protocol: h2
+  # Instructs Gateway to mint its own OIDC JWT for Cloud Run
+  jwtAudience: https://rtk-backend-1054015385247.us-central1.run.app
 
 # ───────────── Security definitions ─────────────
 securityDefinitions:
   id_token:
     type: "oauth2"
     flow: "implicit"
-    authorizationUrl: "" # required by Swagger 2.0, not actually used
+    authorizationUrl: "" # required by Swagger 2.0
     scopes: {} # required by Swagger 2.0
     x-google-issuer: "https://accounts.google.com"
     x-google-jwks_uri: "https://www.googleapis.com/oauth2/v3/certs"
