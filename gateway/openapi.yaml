@@ -6,9 +6,11 @@ info:
 
 paths:
   /api/chat:
-    # ── CORS preflight ────────────────────────────────────────
+    # CORS preflight — forwarded to Cloud Run
     options:
+      operationId: chatPreflight
       summary: "CORS preflight for /api/chat"
+      x-google-allow: all
       x-google-backend:
         address: https://rtk-backend-1054015385247.us-central1.run.app/api/chat
         protocol: h2
@@ -26,10 +28,11 @@ paths:
               type: string
               default: "Content-Type,Authorization"
 
-    # ── Actual POST ───────────────────────────────────────────
+    # Actual chat endpoint — forwarded to Cloud Run
     post:
       operationId: chat
       summary: "Chat endpoint"
+      x-google-allow: all
       consumes:
         - application/json
       produces:
@@ -42,20 +45,8 @@ paths:
       responses:
         "200":
           description: "OK"
-      security:
-        - id_token: []
 
-# ── Let Gateway talk to your service ─────────────────────────
+# Proxy all other calls to your Cloud Run service
 x-google-backend:
   address: https://rtk-backend-1054015385247.us-central1.run.app
   protocol: h2
-
-securityDefinitions:
-  id_token:
-    type: "oauth2"
-    flow: "implicit"
-    authorizationUrl: ""
-    scopes: {}
-    x-google-issuer: "https://accounts.google.com"
-    x-google-jwks_uri: "https://www.googleapis.com/oauth2/v3/certs"
-    x-google-audiences: https://rtk-backend-1054015385247.us-central1.run.app
