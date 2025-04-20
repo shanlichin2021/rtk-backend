@@ -3,47 +3,52 @@ info:
   title: Right‑To‑Know API
   version: "1.0.0"
 
-# Gateway host gets filled in by Google after deployment
-schemes: [https]
-
 paths:
   /api/chat:
-    # ─────────────── 1) CORS pre‑flight  ───────────────
+    # ──────────────── CORS CONFIG (path‑level) ────────────────
+    x-google-cors:
+      allowOrigins: ["https://shanlichin2021.github.io"]
+      allowMethods: ["OPTIONS", "POST"]
+      allowHeaders: ["Content-Type", "Authorization"]
+
+    # OPTIONS (preflight) stub
     options:
-      summary: "CORS support"
+      operationId: chatPreflight
+      summary: "CORS preflight for /api/chat"
       responses:
         "204":
-          description: "No content"
-          headers:
-            Access-Control-Allow-Origin:
-              type: string
-            Access-Control-Allow-Methods:
-              type: string
-            Access-Control-Allow-Headers:
-              type: string
-      # special extensions so Gateway lets OPTIONS through unauthenticated
-      x-google-allow: all               # skip auth
-      x-google-endpoints:
-        - name: allow_cors
-    # ─────────────── 2) Auth‑protected POST ────────────
+          description: "No Content"
+      x-google-allow: all
+
+    # POST (actual chat call)
     post:
-      security:
-        - id_token: []                  # use JWT
+      operationId: chat
+      summary: "Chat endpoint"
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: payload
+          schema:
+            type: object
       responses:
         "200":
           description: "OK"
+      security:
+        - id_token: []
 
-# ╭────────────────── backend mapping ──────────────────╮
+# ───────────── backend mapping ─────────────
 x-google-backend:
   address: https://rtk-backend-1054015385247.us-central1.run.app
-  protocol: h2                                             # Cloud Run
-# ╰───────────────────────────────────────────────────────╯
+  protocol: h2
 
 securityDefinitions:
   id_token:
     type: "oauth2"
-    authorizationUrl: ""          # not used for ID tokens
     flow: "implicit"
+    authorizationUrl: ""
     x-google-issuer: "https://accounts.google.com"
     x-google-jwks_uri: "https://www.googleapis.com/oauth2/v3/certs"
     x-google-audiences: https://rtk-backend-1054015385247.us-central1.run.app
