@@ -1,6 +1,6 @@
 swagger: "2.0"
 
-# ─── Global CORS ─────────────────────────────────────────
+# ← Global CORS for every response (200, 401, 404, etc.)
 x-google-cors:
   allowOrigins: ["https://shanlichin2021.github.io"]
   allowMethods: ["OPTIONS", "POST"]
@@ -12,34 +12,20 @@ info:
 
 paths:
   /api/chat:
-    # Preflight stub
     options:
       operationId: chatPreflight
-      summary: "CORS preflight for /api/chat"
+      x-google-allow: all
       responses:
         "204":
           description: "No Content"
-      x-google-allow: all
-
     post:
       operationId: chat
-      summary: "Chat endpoint"
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      parameters:
-        - in: body
-          name: payload
-          schema:
-            type: object
+      security:
+        - id_token: []
       responses:
         "200":
           description: "OK"
-      security:
-        - id_token: []
 
-# ─── Forwarding to Cloud Run ──────────────────────────────
 x-google-backend:
   address: https://rtk-backend-1054015385247.us-central1.run.app
   protocol: h2
@@ -48,7 +34,6 @@ securityDefinitions:
   id_token:
     type: "oauth2"
     flow: "implicit"
-    authorizationUrl: ""
     x-google-issuer: "https://accounts.google.com"
     x-google-jwks_uri: "https://www.googleapis.com/oauth2/v3/certs"
     x-google-audiences: https://rtk-backend-1054015385247.us-central1.run.app
